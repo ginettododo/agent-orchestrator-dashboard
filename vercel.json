@@ -1,10 +1,19 @@
 {
   "version": 2,
-  "cleanUrls": true,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/",
-      "destination": "/dashboard.html"
+      "src": "site/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/site/dashboard.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/site/$1"
     }
   ]
 }
