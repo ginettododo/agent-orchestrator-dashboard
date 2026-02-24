@@ -19,6 +19,12 @@
   ],
   "headers": [
     {
+      "source": "/",
+      "headers": [
+        {"key": "Cache-Control", "value": "max-age=0, s-maxage=0, stale-while-revalidate=0"}
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {"key": "Cache-Control", "value": "max-age=0, s-maxage=0, stale-while-revalidate=0"}
