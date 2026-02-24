@@ -79,5 +79,6 @@ Costruire un ecosistema di agenti specializzati che lavorano in catena per monit
 - Allestita la base dati e il task bus: `site/data/agent_state.json` mantiene lo stato condiviso, mentre `site/scripts/task_bus.py` permette di spawnare task fittizi, aggiornare i heartbeat e scrivere log.
 - Documentato tutto in `README.md` e aggiunto gli script `site/scripts/auto_tasks.py` (simula task automatici h24) e `site/scripts/heartbeat_runner.py` (loop di heartbeat da cron).
 - Rifinito il backend permanente con `state_manager.py`, SQLite (`backend/app.py`) e nuovi helper (`scripts/start_backend.sh`, `scripts/generate_metrics.py`) per alimentare API e metriche storiche sul mini-PC.
+- Migliorata la dashboard: ora mostra l’agente operativo (tu) in hero, un activity stream live e collegamenti diretti al backend (`/activity`, `/state`), così vedi cosa sto facendo e come comunicano i singoli agenti.
 
 Fammi sapere se vuoi che continui con il passo 2 (mockup funzionante) e poi col passo 3 (script/automation). La prossima consegna includerà il mockup e un file di configurazione per il bus di task.

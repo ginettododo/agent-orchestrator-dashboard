@@ -22,6 +22,22 @@
         <span id="queueBadge" class="badge">Nessun task</span>
       </div>
     </header>
+    <div class="hero-operator">
+      <div class="panel operator-card">
+        <div class="operator-head">
+          <div>
+            <p class="eyebrow">Agente operativo</p>
+            <h2 id="operatorName">Operator Agent</h2>
+          </div>
+          <span id="operatorStatus" class="pill">Pronto</span>
+        </div>
+        <p class="lead" id="operatorEvent">Monitoro la pipeline in tempo reale.</p>
+        <div class="progress">
+          <div class="progress-bar" id="operatorBar" style="width: 0%"></div>
+        </div>
+        <small id="operatorProgress">0% completato</small>
+      </div>
+    </div>
 
     <section class="control-panel">
       <article class="panel queue-panel">
@@ -53,6 +69,14 @@
       </div>
       <div class="log" id="logFeed"></div>
     </section>
+
+    <section class="panel activity-panel">
+      <div class="panel-header">
+        <h2>Activity stream</h2>
+        <small>Comunicazioni tra agenti</small>
+      </div>
+      <ul id="activityFeed" class="activity-feed"></ul>
+    </section>
   </main>
 
   <script>
@@ -67,6 +91,12 @@
     const metricsHistory = document.getElementById("metricsHistory");
     const timestamp = document.getElementById("timestamp");
     const refreshButton = document.getElementById("refresh");
+    const activityFeed = document.getElementById("activityFeed");
+    const operatorName = document.getElementById("operatorName");
+    const operatorStatus = document.getElementById("operatorStatus");
+    const operatorEvent = document.getElementById("operatorEvent");
+    const operatorBar = document.getElementById("operatorBar");
+    const operatorProgress = document.getElementById("operatorProgress");
 
     const statusMap = {
       idle: "Pronto",
@@ -146,6 +176,36 @@
       });
     }
 
+    function renderOperator(operator) {
+      operatorName.textContent = operator.name;
+      const statusLabel = statusMap[operator.status] || operator.status || "Pronto";
+      operatorStatus.textContent = statusLabel;
+      operatorEvent.textContent = operator.last_event;
+      const percent = Math.max(5, Math.round((operator.progress || 0) * 100));
+      operatorBar.style.width = `${percent}%`;
+      operatorProgress.textContent = `${percent}% completato`;
+      operatorStatus.classList.toggle("pill-busy", operator.status !== "ready" && operator.status !== "idle");
+    }
+
+    function renderActivity(feed) {
+      activityFeed.innerHTML = "";
+      if (!feed || !feed.length) {
+        const empty = document.createElement("li");
+        empty.className = "empty";
+        empty.textContent = "Nessuna attività recente.";
+        activityFeed.appendChild(empty);
+        return;
+      }
+      feed.slice(0, 6).forEach((item) => {
+        const row = document.createElement("li");
+        row.innerHTML = `
+          <span class="activity-time">${new Date(item.timestamp).toLocaleTimeString()}</span>
+          <strong>${item.message}</strong>
+        `;
+        activityFeed.appendChild(row);
+      });
+    }
+
     async function refreshState() {
       try {
         const response = await fetch(statePath + "?ts=" + Date.now());
@@ -156,6 +216,8 @@
         renderQueue(state.queue);
         renderLogs(state.logs);
         renderMetrics(state.metric, state.metrics_history);
+        renderOperator(state.operator);
+        renderActivity(state.activity);
       } catch (error) {
         console.error(error);
         queueSummary.textContent = "Errore nel recupero dello stato.";

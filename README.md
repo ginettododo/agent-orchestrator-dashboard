@@ -57,7 +57,7 @@ Ogni iterazione invoca `task_bus.py spawn` con un messaggio casuale e aggiorna i
 
 ## Backend e database permanente sul mini-PC
 
-Il cuore dello stato vive sul tuo mini-PC. I dati degli agenti, dei task, dei log e delle metriche vengono salvati in SQLite (`backend/data/agents.db`) e propagati alla UI tramite `state_manager.py`.
+Il cuore dello stato vive sul tuo mini-PC. I dati degli agenti, dei task, dei log e delle metriche vengono salvati in SQLite (`backend/data/agents.db`) e propagati alla UI tramite `state_manager.py`, che ora espone anche uno stream di attività e l’header del tuo agente operativo.
 
 1. Installa le dipendenze:
    ```bash
@@ -68,13 +68,16 @@ Il cuore dello stato vive sul tuo mini-PC. I dati degli agenti, dei task, dei lo
    cd /root/.openclaw/workspace
    ./scripts/start_backend.sh
    ```
-   Questo espone API REST su `http://localhost:8001/` che la dashboard può usare (e che puoi interrogare da remoto). Usa `/state`, `/tasks`, `/heartbeat` per integrare altre automazioni.
+   Questo espone API REST su `http://localhost:8001/` che la dashboard consuma:
+   - `/state` restituisce stato, log, metriche, attività e informazioni sull’operatore.
+   - `/activity` fornisce lo stream di comunicazioni tra agenti.
+   - `/tasks` e `/heartbeat` permettono di generare task e sincronizzarne lo stato.
 3. Se vuoi riempire la cronologia metriche fittizie:
    ```bash
    python3 scripts/generate_metrics.py --iterations 20 --interval 1
    ```
 
-Questo backend rimane in esecuzione come servizio e aggiorna `site/data/agent_state.json` + `data/task_bus.json` dopo ogni operazione.
+Questo backend rimane in esecuzione come servizio e aggiorna `site/data/agent_state.json` + `data/task_bus.json` dopo ogni operazione, quindi la dashboard sarà sempre sincronizzata con la pipeline reale.
 
 ## Prossimi step suggeriti
 

@@ -1,35 +1,41 @@
 {
-  "timestamp": "2026-02-24T11:54:36.020860+00:00",
+  "timestamp": "2026-02-24T12:06:35.290022+00:00",
   "agents": [
     {
       "name": "Monitor Agent",
-      "status": "working",
-      "progress": 0.5,
-      "last_event": "nuovo task rilevato"
+      "status": "sync",
+      "progress": 0.3221942554582805,
+      "last_event": "update automatico 6 min fa"
     },
     {
       "name": "Analyst Agent",
-      "status": "working",
-      "progress": 0.5,
-      "last_event": "nuovo task rilevato"
+      "status": "sync",
+      "progress": 0.13971682585240197,
+      "last_event": "update automatico 8 min fa"
     },
     {
       "name": "Executor Agent",
-      "status": "idle",
-      "progress": 0.0,
-      "last_event": "inizializzazione"
+      "status": "sync",
+      "progress": 0.6544614288948671,
+      "last_event": "update automatico 1 min fa"
     },
     {
       "name": "Reviewer Agent",
-      "status": "idle",
-      "progress": 0.0,
-      "last_event": "inizializzazione"
+      "status": "review",
+      "progress": 0.5616029735324084,
+      "last_event": "update automatico 3 min fa"
     },
     {
       "name": "Notifier Agent",
-      "status": "idle",
-      "progress": 0.0,
-      "last_event": "inizializzazione"
+      "status": "review",
+      "progress": 0.49818042754847114,
+      "last_event": "update automatico 5 min fa"
+    },
+    {
+      "name": "Operator Agent",
+      "status": "sync",
+      "progress": 0.7157206058340271,
+      "last_event": "update automatico 9 min fa"
     }
   ],
   "queue": {
@@ -47,11 +53,12 @@
     "next_task": "Test offline"
   },
   "logs": [
+    "Heartbeat automatico: stato sincronizzato.",
     "Nuovo task 'Test offline' (priorit\u00e0 alta)."
   ],
   "metric": {
     "label": "Efficienza media",
-    "value": 0.2
+    "value": 0.481979419520076
   },
   "metrics_history": [
     {
@@ -78,6 +85,27 @@
       "label": "Efficienza media",
       "value": 0.2,
       "timestamp": "2026-02-24T11:53:49.280300+00:00"
+    },
+    {
+      "label": "Efficienza media",
+      "value": 0.481979419520076,
+      "timestamp": "2026-02-24T12:06:35.265622+00:00"
     }
-  ]
+  ],
+  "activity": [
+    {
+      "timestamp": "2026-02-24T12:06:35.238180+00:00",
+      "message": "Heartbeat automatico: stato sincronizzato."
+    },
+    {
+      "timestamp": "2026-02-24T11:53:49.261676+00:00",
+      "message": "Nuovo task 'Test offline' (priorit\u00e0 alta)."
+    }
+  ],
+  "operator": {
+    "name": "Operator Agent",
+    "status": "sync",
+    "progress": 0.7157206058340271,
+    "last_event": "update automatico 9 min fa"
+  }
 }

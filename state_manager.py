@@ -3,7 +3,7 @@ import random
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Any
 
 AGENT_NAMES = [
     "Monitor Agent",
@@ -11,6 +11,7 @@ AGENT_NAMES = [
     "Executor Agent",
     "Reviewer Agent",
     "Notifier Agent",
+    "Operator Agent"
 ]
 
 DB_PATH = Path("backend/data/agents.db")
@@ -18,6 +19,7 @@ STATE_JSON = Path("site/data/agent_state.json")
 TASKBUS_JSON = Path("data/task_bus.json")
 METRICS_HISTORY = 10
 LOG_HISTORY = 20
+ACTIVITY_LIMIT = 12
 
 
 def now_iso() -> str:
@@ -102,6 +104,22 @@ class StateManager:
             min_id = min(ids)
             cur.execute("DELETE FROM logs WHERE id < ?", (min_id,))
             self.conn.commit()
+
+    def activity_feed(self, limit: int = ACTIVITY_LIMIT) -> List[Dict[str, Any]]:
+        cur = self.conn.cursor()
+        cur.execute("SELECT timestamp, message FROM logs ORDER BY id DESC LIMIT ?", (limit,))
+        return [
+            {"timestamp": row[0], "message": row[1]}
+            for row in cur.fetchall()
+        ]
+
+    def operator_status(self) -> Dict[str, Any]:
+        cur = self.conn.cursor()
+        cur.execute("SELECT name, status, progress, last_event FROM agents WHERE name = ?", ("Operator Agent",))
+        row = cur.fetchone()
+        if row:
+            return dict(row)
+        return {"name": "Operator Agent", "status": "ready", "progress": 0.0, "last_event": "ancora inattivo"}
 
     def _update_metrics(self) -> None:
         cur = self.conn.cursor()
@@ -196,6 +214,8 @@ class StateManager:
             "logs": logs,
             "metric": {"label": metric[0], "value": metric[1]} if metric else {"label": "Efficienza media", "value": 0.0},
             "metrics_history": self.metrics_history(),
+            "activity": self.activity_feed(),
+            "operator": self.operator_status(),
         }
 
     def sync_files(self) -> None:

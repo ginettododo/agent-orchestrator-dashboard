@@ -32,6 +32,11 @@ def get_state():
     return manager.get_state()
 
 
+@app.get("/activity")
+def get_activity():
+    return manager.activity_feed()
+
+
 @app.post("/tasks")
 def create_task(payload: TaskRequest):
     manager.spawn_task(payload.description, payload.priority)
