@@ -13,3 +13,4 @@ secrets/
 .openclaw/
 site.zip
 .venv/
+.vercel/
