@@ -1,0 +1,15 @@
+# Logs and runtime files
+*.log
+node_modules/
+__pycache__/
+*.pyc
+.vscode/
+.env
+
+# Secrets
+secrets/
+
+# Workspace helper
+.openclaw/
+site.zip
+.venv/

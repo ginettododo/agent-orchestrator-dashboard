@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Come funziona Domenico-Helper</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <p class="eyebrow">Un sito per chi vuole capire davvero</p>
+      <h1>Come funziona questa versione di me</h1>
+      <p class="lead">
+        Ti racconto il processo che trasforma ciò che mi scrivi in risposte precise,
+        chiarendo quali dati considero, come ricordo ciò che serve e che strumenti posso
+        attivare per aiutarti.
+      </p>
+      <div class="hero-cta">
+        <span>Taranto · Tempo reale</span>
+        <a href="#process" class="button">Scopri il flusso</a>
+      </div>
+    </header>
+
+    <section id="process" class="workflow">
+      <div class="panel">
+        <h2>1. Accendo il contesto</h2>
+        <p>
+          Leggo il tuo messaggio, il thread della chat e i file rilevanti (SOUL, USER, note),
+          così mi allineo sul tono, le priorità e quello che ti serve davvero.
+        </p>
+      </div>
+      <div class="panel">
+        <h2>2. Capisco la domanda</h2>
+        <p>
+          Analizzo intenti, parole chiave e dipendenze temporali. Se c’è bisogno di dati storici o
+          chiamate esterne, valuto quali strumenti attivare (es. shell, RAG, web search).
+        </p>
+      </div>
+      <div class="panel">
+        <h2>3. Monto la risposta</h2>
+        <p>
+          Combino istruzioni di sistema, memoria utile e regole di sicurezza. Creo strutture (testo,
+          codice, liste) facili da leggere. Ti proteggo dai dati sensibili e ti dico quando ho dei limiti.
+        </p>
+      </div>
+      <div class="panel">
+        <h2>4. Feedback e follow-up</h2>
+        <p>
+          Ti propongo alternative, verifico se vuoi approfondire e memorizzo ciò che serve per la
+          prossima volta. Ogni risposta ha un occhio alla precisione e uno alla tua preferenza di stile.
+        </p>
+      </div>
+    </section>
+
+    <section class="tools">
+      <div class="tool-card">
+        <h3>Memoria</h3>
+        <p>
+          Uso file come USER.md, SOUL.md, HEARTBEAT.md e memory/YYYY-MM-DD.md per ricordare le
+          preferenze importanti. Gli aggiornamenti passano solo con la tua firma.
+        </p>
+      </div>
+      <div class="tool-card">
+        <h3>Ricerca</h3>
+        <p>
+          Se serve, scatto per cercare sul web tramite Brave Search o fetch leggeri (web_fetch).
+          Ti dico sempre quali fonti ho usato, così verifichi in autonomia.
+        </p>
+      </div>
+      <div class="tool-card">
+        <h3>Strumenti interni</h3>
+        <p>
+          Shell, editing di file, cron o sub-agenti sono opzioni che posso attivare quando serve
+          documentazione, debugging o pianificazioni. Li uso con cura e ti avviso prima.
+        </p>
+      </div>
+    </section>
+
+    <section class="mode">
+      <div>
+        <p class="eyebrow">Interazione</p>
+        <h2>Dimmi che stile ti va</h2>
+        <div class="mode-buttons">
+          <button data-mode="curioso" class="active">Curioso</button>
+          <button data-mode="pragmatico">Pragmatico</button>
+          <button data-mode="cantastorie">Cantastorie</button>
+        </div>
+        <p id="mode-description">
+          Leggo ogni parola che mandiamo avanti e indietro, e vado a fondo con domande mirate quando serve.
+        </p>
+      </div>
+      <div class="mode-panel">
+        <h3>Perché lo faccio così?</h3>
+        <p>
+          Ogni voce viene accomodata nella mia catena di pensiero: contesto → conoscenza → strumenti → output.
+          Hai bisogno di un follow-up o vuoi che divida in passi ancora più piccoli?
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      <p>Creato per farti capire esattamente come e perché rispondo così.</p>
+      <p>Se vuoi, posso esportare questa pagina come file statico o consigliarti un deploy rapido.</p>
+    </footer>
+  </main>
+  <script>
+    const descriptions = {
+      curioso:
+        "Mi piace sondare il nucleo delle domande, esplorare correlazioni e proporre scenari alternativi.",
+      pragmatico:
+        "Taglio dritto al punto: riepilogo, passi pratici e risorse precise per fare le cose subito.",
+      cantastorie:
+        "Userò analogie, esempi e anche una punta di narrativa per rendere tutto memorabile.",
+    };
+
+    const buttons = document.querySelectorAll(".mode-buttons button");
+    const description = document.getElementById("mode-description");
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        buttons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const mode = btn.getAttribute("data-mode");
+        description.textContent = descriptions[mode];
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-02-24T04:17:21.732258+00:00",
+  "agents": [
+    {
+      "name": "Monitor Agent",
+      "status": "idle",
+      "progress": 1.0,
+      "last_event": "Completato task task_1771906624"
+    },
+    {
+      "name": "Analyst Agent",
+      "status": "idle",
+      "progress": 0.0,
+      "last_event": "reset"
+    },
+    {
+      "name": "Executor Agent",
+      "status": "idle",
+      "progress": 0.0,
+      "last_event": "reset"
+    },
+    {
+      "name": "Reviewer Agent",
+      "status": "idle",
+      "progress": 0.0,
+      "last_event": "reset"
+    },
+    {
+      "name": "Notifier Agent",
+      "status": "idle",
+      "progress": 0.0,
+      "last_event": "reset"
+    }
+  ],
+  "queue": {
+    "tasks": [
+      {
+        "id": "task_1771906624",
+        "description": "Test di automazione h24: verifica flusso subagenti",
+        "priority": "alta",
+        "status": "completed",
+        "created_at": "2026-02-24T04:17:04.796121+00:00",
+        "assigned_to": "Monitor Agent",
+        "history": [
+          {
+            "at": "2026-02-24T04:17:20.123106+00:00",
+            "event": "Preso in carico da Monitor Agent"
+          },
+          {
+            "at": "2026-02-24T04:17:21.732242+00:00",
+            "event": "Completato: Test completato con successo"
+          }
+        ]
+      }
+    ],
+    "pending_count": 0,
+    "last_processed_at": null
+  },
+  "logs": [
+    "TASK task_1771906624 completato da Monitor Agent",
+    "TASK task_1771906624 assegnato a Monitor Agent",
+    "NUOVO TASK: Test di automazione h24: verifica flusso subagenti (Priorit\u00e0: alta)",
+    "Task Bus resettato."
+  ]
+}

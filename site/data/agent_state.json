@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-02-24T04:20:00Z",
+  "agents": [
+    {"name": "Monitor Agent", "status": "idle", "progress": 0.25, "last_event": "2 min fa"},
+    {"name": "Analyst Agent", "status": "working", "progress": 0.62, "last_event": "1 min fa"},
+    {"name": "Executor Agent", "status": "waiting", "progress": 0.18, "last_event": "5 min fa"},
+    {"name": "Reviewer Agent", "status": "idle", "progress": 0.45, "last_event": "9 min fa"},
+    {"name": "Notifier Agent", "status": "sync", "progress": 0.83, "last_event": "0 min fa"}
+  ],
+  "queue": {
+    "pending": 2,
+    "priority": "media",
+    "next_task": "Analyst Agent sta definendo i requisiti"
+  },
+  "logs": [
+    "Notifier Agent ha registrato un alert di completamento.",
+    "Executor Agent ha generato nuovi asset grafici.",
+    "Analyst Agent ha chiesto chiarimenti preliminari a Monitor Agent.",
+    "Monitor Agent ha ascoltato un webhook esterno.",
+    "Cron heartbeat toccato a 04:15 UTC."
+  ],
+  "metric": {
+    "label": "Efficienza media",
+    "value": 0.68
+  }
+}

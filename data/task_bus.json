@@ -1,0 +1,43 @@
+{
+    "timestamp": "2026-02-24T04:16:16.000Z",
+    "agents": [
+        {
+            "name": "Monitor Agent",
+            "status": "idle",
+            "progress": 0.0,
+            "last_event": "inizializzazione"
+        },
+        {
+            "name": "Analyst Agent",
+            "status": "idle",
+            "progress": 0.0,
+            "last_event": "inizializzazione"
+        },
+        {
+            "name": "Executor Agent",
+            "status": "idle",
+            "progress": 0.0,
+            "last_event": "inizializzazione"
+        },
+        {
+            "name": "Reviewer Agent",
+            "status": "idle",
+            "progress": 0.0,
+            "last_event": "inizializzazione"
+        },
+        {
+            "name": "Notifier Agent",
+            "status": "idle",
+            "progress": 0.0,
+            "last_event": "inizializzazione"
+        }
+    ],
+    "queue": {
+        "tasks": [],
+        "pending_count": 0,
+        "last_processed_at": null
+    },
+    "logs": [
+        "Task Bus inizializzato. Sistema pronto per l'automazione h24."
+    ]
+}

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Agenti H24</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <p class="eyebrow">Sistema attivo · aggiornamento <span id="timestamp">--:--:--</span></p>
+      <h1>Dashboard H24 degli agenti</h1>
+      <p class="lead">
+        Ogni blocco rappresenta un agente specializzato nel flusso. Lo status si aggiorna in tempo reale
+        e puoi attivare nuovi task con il comando rapido in basso.
+      </p>
+    </header>
+
+    <section class="workflow" id="agentGrid"></section>
+
+    <section class="tools controls">
+      <div class="tool-card">
+        <h3>Task queue</h3>
+        <p id="queueSummary">Caricamento...</p>
+        <button class="button" id="spawnTask">Avvia task fittizio</button>
+      </div>
+      <div class="tool-card">
+        <h3>Log recenti</h3>
+        <div class="log" id="logFeed"></div>
+      </div>
+      <div class="tool-card">
+        <h3>Metrica generale</h3>
+        <p id="metricValue">...</p>
+        <div class="progress">
+          <div class="progress-bar" id="metricBar"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const agentGrid = document.getElementById("agentGrid");
+    const logFeed = document.getElementById("logFeed");
+    const metricValue = document.getElementById("metricValue");
+    const metricBar = document.getElementById("metricBar");
+    const queueSummary = document.getElementById("queueSummary");
+    const timestamp = document.getElementById("timestamp");
+
+    const statusMap = {
+      idle: "Pronto",
+      working: "Esecuzione",
+      waiting: "In attesa",
+      sync: "Sincronizzato",
+      review: "Verifica",
+    };
+
+    function renderAgents(agentData) {
+      agentGrid.innerHTML = "";
+      (agentData || []).forEach((agent) => {
+        const status = statusMap[agent.status] || agent.status || "Unknown";
+        const progress = Math.round((agent.progress || 0) * 100);
+        const card = document.createElement("div");
+        card.className = "panel agent-card";
+        card.innerHTML = `
+          <h2>${agent.name}</h2>
+          <p>Status: <strong>${status}</strong></p>
+          <p>Ultimo evento: ${agent.last_event || "nessuno"}</p>
+          <div class="progress" aria-label="progress">
+            <div class="progress-bar" style="width:${Math.max(20, progress)}%"></div>
+          </div>
+          <p class="lead" style="margin-top:0.5rem;">${progress}% completato</p>
+        `;
+        agentGrid.appendChild(card);
+      });
+    }
+
+    function renderLogs(logs = []) {
+      logFeed.innerHTML = "";
+      logs.slice(0, 5).forEach((message) => {
+        const entry = document.createElement("p");
+        entry.textContent = `${new Date().toLocaleTimeString()} • ${message}`;
+        logFeed.appendChild(entry);
+      });
+    }
+
+    function updateMetric(metric) {
+      const value = Math.round((metric?.value ?? 0) * 100);
+      const label = metric?.label || "Efficienza media";
+      metricValue.textContent = `${label}: ${value}%`;
+      metricBar.style.width = `${value}%`;
+    }
+
+    async function refreshState() {
+      try {
+        const response = await fetch("./data/agent_state.json?ts=" + Date.now());
+        if (!response.ok) throw new Error("Impossibile caricare lo stato.");
+        const state = await response.json();
+        timestamp.textContent = new Date(state.timestamp).toLocaleTimeString();
+        queueSummary.textContent = `${state.queue.pending} task in coda · priorità ${state.queue.priority} · prossimo: ${state.queue.next_task}`;
+        renderAgents(state.agents);
+        renderLogs(state.logs);
+        updateMetric(state.metric);
+      } catch (error) {
+        queueSummary.textContent = "Errore nel recupero dello stato.";
+        updateLog(error.message);
+      }
+    }
+
+    function updateLog(message) {
+      const entry = document.createElement("p");
+      entry.textContent = `${new Date().toLocaleTimeString()} • ${message}`;
+      logFeed.prepend(entry);
+      if (logFeed.children.length > 5) logFeed.removeChild(logFeed.lastChild);
+    }
+
+    document.getElementById("spawnTask").addEventListener("click", () => {
+      updateLog("Per creare un task reale: `python3 scripts/task_bus.py spawn --task \"Descrivi l'azione\" --priority alta`");
+    });
+
+    refreshState();
+    setInterval(refreshState, 10000);
+  </script>
+</body>
+</html>
