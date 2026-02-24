@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Agenti H24</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Control room • Aggiornamento <span id="timestamp">--:--:--</span></p>
+        <h1>Catena di agenti attiva h24</h1>
+        <p class="lead">
+          Monitoro pipeline, task, log e metriche in tempo reale. Questa pagina legge il 
+          JSON condiviso e mostra lo stato attuale, inclusi backlog, log e trend storici.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button id="refresh" class="button ghost">Aggiorna ora</button>
+        <span id="queueBadge" class="badge">Nessun task</span>
+      </div>
+    </header>
+    <div class="hero-operator">
+      <div class="panel operator-card">
+        <div class="operator-head">
+          <div>
+            <p class="eyebrow">Agente operativo</p>
+            <h2 id="operatorName">Operator Agent</h2>
+          </div>
+          <span id="operatorStatus" class="pill">Pronto</span>
+        </div>
+        <p class="lead" id="operatorEvent">Monitoro la pipeline in tempo reale.</p>
+        <div class="progress">
+          <div class="progress-bar" id="operatorBar" style="width: 0%"></div>
+        </div>
+        <small id="operatorProgress">0% completato</small>
+      </div>
+    </div>
+
+    <section class="control-panel">
+      <article class="panel queue-panel">
+        <div class="panel-header">
+          <h2>Task queue</h2>
+          <small id="queueSummary">Caricamento...</small>
+        </div>
+        <ul id="queueList"></ul>
+      </article>
+
+      <article class="panel metrics-panel">
+        <div class="panel-header">
+          <h2>Metriche live</h2>
+          <small id="metricValue">...</small>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" id="metricBar"></div>
+        </div>
+        <div class="metrics-history" id="metricsHistory"></div>
+      </article>
+    </section>
+
+    <section class="workflow" id="agentGrid"></section>
+
+    <section class="panel logs-panel">
+      <div class="panel-header">
+        <h2>Log recenti</h2>
+        <small>Ultimi eventi</small>
+      </div>
+      <div class="log" id="logFeed"></div>
+    </section>
+
+    <section class="panel activity-panel">
+      <div class="panel-header">
+        <h2>Activity stream</h2>
+        <small>Comunicazioni tra agenti</small>
+      </div>
+      <ul id="activityFeed" class="activity-feed"></ul>
+    </section>
+  </main>
+
+  <script>
+    const statePath = "./data/agent_state.json";
+    const agentGrid = document.getElementById("agentGrid");
+    const logFeed = document.getElementById("logFeed");
+    const metricValue = document.getElementById("metricValue");
+    const metricBar = document.getElementById("metricBar");
+    const queueSummary = document.getElementById("queueSummary");
+    const queueList = document.getElementById("queueList");
+    const queueBadge = document.getElementById("queueBadge");
+    const metricsHistory = document.getElementById("metricsHistory");
+    const timestamp = document.getElementById("timestamp");
+    const refreshButton = document.getElementById("refresh");
+    const activityFeed = document.getElementById("activityFeed");
+    const operatorName = document.getElementById("operatorName");
+    const operatorStatus = document.getElementById("operatorStatus");
+    const operatorEvent = document.getElementById("operatorEvent");
+    const operatorBar = document.getElementById("operatorBar");
+    const operatorProgress = document.getElementById("operatorProgress");
+
+    const statusMap = {
+      idle: "Pronto",
+      working: "Esecuzione",
+      waiting: "In attesa",
+      sync: "Sincronizzato",
+      review: "Verifica",
+    };
+
+    function renderAgents(agents) {
+      agentGrid.innerHTML = "";
+      agents.forEach((agent) => {
+        const status = statusMap[agent.status] || agent.status || "Unknown";
+        const progress = Math.round((agent.progress || 0) * 100);
+        const card = document.createElement("div");
+        card.className = "panel agent-card";
+        card.innerHTML = `
+          <div class="agent-head">
+            <h3>${agent.name}</h3>
+            <span class="pill">${status}</span>
+          </div>
+          <p class="lead">Ultimo evento: ${agent.last_event}</p>
+          <div class="progress">
+            <div class="progress-bar" style="width:${Math.max(25, progress)}%"></div>
+          </div>
+          <p class="subtle">${progress}% completato</p>
+        `;
+        agentGrid.appendChild(card);
+      });
+    }
+
+    function renderQueue(queue) {
+      queueSummary.textContent = `${queue.pending_count} task · prossima: ${queue.next_task}`;
+      queueBadge.textContent = queue.pending_count ? `${queue.pending_count} in coda` : "Nessun task";
+      queueBadge.classList.toggle("badge-empty", queue.pending_count === 0);
+      queueList.innerHTML = "";
+      (queue.tasks || []).slice(0, 5).forEach((task) => {
+        const item = document.createElement("li");
+        item.innerHTML = `
+          <strong>${task.description}</strong>
+          <span class="pill small">${task.priority}</span>
+        `;
+        queueList.appendChild(item);
+      });
+      if (!queue.tasks || queue.tasks.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "empty";
+        empty.textContent = "Nessun task attivo";
+        queueList.appendChild(empty);
+      }
+    }
+
+    function renderLogs(logs) {
+      logFeed.innerHTML = "";
+      logs.slice(0, 5).forEach((message) => {
+        const entry = document.createElement("p");
+        entry.textContent = `${new Date().toLocaleTimeString()} • ${message}`;
+        logFeed.appendChild(entry);
+      });
+    }
+
+    function renderMetrics(metric, history) {
+      const value = Math.round((metric?.value ?? 0) * 100);
+      metricValue.textContent = `${metric?.label || "Efficienza media"}: ${value}%`;
+      metricBar.style.width = `${value}%`;
+      metricsHistory.innerHTML = "";
+      (history || []).forEach((point) => {
+        const row = document.createElement("div");
+        row.className = "metrics-row";
+        const label = document.createElement("span");
+        label.textContent = new Date(point.timestamp).toLocaleTimeString();
+        const bar = document.createElement("div");
+        bar.className = "metrics-bar";
+        bar.style.width = `${Math.round(point.value * 100)}%`;
+        row.append(label, bar);
+        metricsHistory.appendChild(row);
+      });
+    }
+
+    function renderOperator(operator) {
+      operatorName.textContent = operator.name;
+      const statusLabel = statusMap[operator.status] || operator.status || "Pronto";
+      operatorStatus.textContent = statusLabel;
+      operatorEvent.textContent = operator.last_event;
+      const percent = Math.max(5, Math.round((operator.progress || 0) * 100));
+      operatorBar.style.width = `${percent}%`;
+      operatorProgress.textContent = `${percent}% completato`;
+      operatorStatus.classList.toggle("pill-busy", operator.status !== "ready" && operator.status !== "idle");
+    }
+
+    function renderActivity(feed) {
+      activityFeed.innerHTML = "";
+      if (!feed || !feed.length) {
+        const empty = document.createElement("li");
+        empty.className = "empty";
+        empty.textContent = "Nessuna attività recente.";
+        activityFeed.appendChild(empty);
+        return;
+      }
+      feed.slice(0, 6).forEach((item) => {
+        const row = document.createElement("li");
+        row.innerHTML = `
+          <span class="activity-time">${new Date(item.timestamp).toLocaleTimeString()}</span>
+          <strong>${item.message}</strong>
+        `;
+        activityFeed.appendChild(row);
+      });
+    }
+
+    async function refreshState() {
+      try {
+        const response = await fetch(statePath + "?ts=" + Date.now());
+        if (!response.ok) throw new Error("Impossibile caricare lo stato.");
+        const state = await response.json();
+        timestamp.textContent = new Date(state.timestamp).toLocaleTimeString();
+        renderAgents(state.agents);
+        renderQueue(state.queue);
+        renderLogs(state.logs);
+        renderMetrics(state.metric, state.metrics_history);
+        renderOperator(state.operator);
+        renderActivity(state.activity);
+      } catch (error) {
+        console.error(error);
+        queueSummary.textContent = "Errore nel recupero dello stato.";
+      }
+    }
+
+    refreshButton.addEventListener("click", () => refreshState());
+    refreshState();
+    setInterval(refreshState, 10000);
+  </script>
+</body>
+</html>
