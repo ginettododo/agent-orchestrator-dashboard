@@ -1,20 +1,10 @@
 {
   "version": 2,
-  "name": "agent-orchestrator-dashboard",
-  "builds": [
+  "cleanUrls": true,
+  "rewrites": [
     {
-      "src": "site/**/*",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/",
-      "dest": "/site/dashboard.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/site/$1"
+      "source": "/",
+      "destination": "/dashboard.html"
     }
   ]
 }
