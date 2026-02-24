@@ -3,134 +3,230 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Come funziona Domenico-Helper</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
+  <title>Dashboard Agenti H24</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main>
+  <main class="page">
     <header class="hero">
-      <p class="eyebrow">Un sito per chi vuole capire davvero</p>
-      <h1>Come funziona questa versione di me</h1>
-      <p class="lead">
-        Ti racconto il processo che trasforma ciò che mi scrivi in risposte precise,
-        chiarendo quali dati considero, come ricordo ciò che serve e che strumenti posso
-        attivare per aiutarti.
-      </p>
-      <div class="hero-cta">
-        <span>Taranto · Tempo reale</span>
-        <a href="#process" class="button">Scopri il flusso</a>
+      <div>
+        <p class="eyebrow">Control room • Aggiornamento <span id="timestamp">--:--:--</span></p>
+        <h1>Catena di agenti attiva h24</h1>
+        <p class="lead">
+          Monitoro pipeline, task, log e metriche in tempo reale. Questa pagina legge il 
+          JSON condiviso e mostra lo stato attuale, inclusi backlog, log e trend storici.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button id="refresh" class="button ghost">Aggiorna ora</button>
+        <span id="queueBadge" class="badge">Nessun task</span>
       </div>
     </header>
-
-    <section id="process" class="workflow">
-      <div class="panel">
-        <h2>1. Accendo il contesto</h2>
-        <p>
-          Leggo il tuo messaggio, il thread della chat e i file rilevanti (SOUL, USER, note),
-          così mi allineo sul tono, le priorità e quello che ti serve davvero.
-        </p>
-      </div>
-      <div class="panel">
-        <h2>2. Capisco la domanda</h2>
-        <p>
-          Analizzo intenti, parole chiave e dipendenze temporali. Se c’è bisogno di dati storici o
-          chiamate esterne, valuto quali strumenti attivare (es. shell, RAG, web search).
-        </p>
-      </div>
-      <div class="panel">
-        <h2>3. Monto la risposta</h2>
-        <p>
-          Combino istruzioni di sistema, memoria utile e regole di sicurezza. Creo strutture (testo,
-          codice, liste) facili da leggere. Ti proteggo dai dati sensibili e ti dico quando ho dei limiti.
-        </p>
-      </div>
-      <div class="panel">
-        <h2>4. Feedback e follow-up</h2>
-        <p>
-          Ti propongo alternative, verifico se vuoi approfondire e memorizzo ciò che serve per la
-          prossima volta. Ogni risposta ha un occhio alla precisione e uno alla tua preferenza di stile.
-        </p>
-      </div>
-    </section>
-
-    <section class="tools">
-      <div class="tool-card">
-        <h3>Memoria</h3>
-        <p>
-          Uso file come USER.md, SOUL.md, HEARTBEAT.md e memory/YYYY-MM-DD.md per ricordare le
-          preferenze importanti. Gli aggiornamenti passano solo con la tua firma.
-        </p>
-      </div>
-      <div class="tool-card">
-        <h3>Ricerca</h3>
-        <p>
-          Se serve, scatto per cercare sul web tramite Brave Search o fetch leggeri (web_fetch).
-          Ti dico sempre quali fonti ho usato, così verifichi in autonomia.
-        </p>
-      </div>
-      <div class="tool-card">
-        <h3>Strumenti interni</h3>
-        <p>
-          Shell, editing di file, cron o sub-agenti sono opzioni che posso attivare quando serve
-          documentazione, debugging o pianificazioni. Li uso con cura e ti avviso prima.
-        </p>
-      </div>
-    </section>
-
-    <section class="mode">
-      <div>
-        <p class="eyebrow">Interazione</p>
-        <h2>Dimmi che stile ti va</h2>
-        <div class="mode-buttons">
-          <button data-mode="curioso" class="active">Curioso</button>
-          <button data-mode="pragmatico">Pragmatico</button>
-          <button data-mode="cantastorie">Cantastorie</button>
+    <div class="hero-operator">
+      <div class="panel operator-card">
+        <div class="operator-head">
+          <div>
+            <p class="eyebrow">Agente operativo</p>
+            <h2 id="operatorName">Operator Agent</h2>
+          </div>
+          <span id="operatorStatus" class="pill">Pronto</span>
         </div>
-        <p id="mode-description">
-          Leggo ogni parola che mandiamo avanti e indietro, e vado a fondo con domande mirate quando serve.
-        </p>
+        <p class="lead" id="operatorEvent">Monitoro la pipeline in tempo reale.</p>
+        <div class="progress">
+          <div class="progress-bar" id="operatorBar" style="width: 0%"></div>
+        </div>
+        <small id="operatorProgress">0% completato</small>
       </div>
-      <div class="mode-panel">
-        <h3>Perché lo faccio così?</h3>
-        <p>
-          Ogni voce viene accomodata nella mia catena di pensiero: contesto → conoscenza → strumenti → output.
-          Hai bisogno di un follow-up o vuoi che divida in passi ancora più piccoli?
-        </p>
-      </div>
+    </div>
+
+    <section class="control-panel">
+      <article class="panel queue-panel">
+        <div class="panel-header">
+          <h2>Task queue</h2>
+          <small id="queueSummary">Caricamento...</small>
+        </div>
+        <ul id="queueList"></ul>
+      </article>
+
+      <article class="panel metrics-panel">
+        <div class="panel-header">
+          <h2>Metriche live</h2>
+          <small id="metricValue">...</small>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" id="metricBar"></div>
+        </div>
+        <div class="metrics-history" id="metricsHistory"></div>
+      </article>
     </section>
 
-    <footer>
-      <p>Creato per farti capire esattamente come e perché rispondo così.</p>
-      <p>Se vuoi, posso esportare questa pagina come file statico o consigliarti un deploy rapido.</p>
-    </footer>
+    <section class="workflow" id="agentGrid"></section>
+
+    <section class="panel logs-panel">
+      <div class="panel-header">
+        <h2>Log recenti</h2>
+        <small>Ultimi eventi</small>
+      </div>
+      <div class="log" id="logFeed"></div>
+    </section>
+
+    <section class="panel activity-panel">
+      <div class="panel-header">
+        <h2>Activity stream</h2>
+        <small>Comunicazioni tra agenti</small>
+      </div>
+      <ul id="activityFeed" class="activity-feed"></ul>
+    </section>
   </main>
+
   <script>
-    const descriptions = {
-      curioso:
-        "Mi piace sondare il nucleo delle domande, esplorare correlazioni e proporre scenari alternativi.",
-      pragmatico:
-        "Taglio dritto al punto: riepilogo, passi pratici e risorse precise per fare le cose subito.",
-      cantastorie:
-        "Userò analogie, esempi e anche una punta di narrativa per rendere tutto memorabile.",
+    const statePath = "./data/agent_state.json";
+    const agentGrid = document.getElementById("agentGrid");
+    const logFeed = document.getElementById("logFeed");
+    const metricValue = document.getElementById("metricValue");
+    const metricBar = document.getElementById("metricBar");
+    const queueSummary = document.getElementById("queueSummary");
+    const queueList = document.getElementById("queueList");
+    const queueBadge = document.getElementById("queueBadge");
+    const metricsHistory = document.getElementById("metricsHistory");
+    const timestamp = document.getElementById("timestamp");
+    const refreshButton = document.getElementById("refresh");
+    const activityFeed = document.getElementById("activityFeed");
+    const operatorName = document.getElementById("operatorName");
+    const operatorStatus = document.getElementById("operatorStatus");
+    const operatorEvent = document.getElementById("operatorEvent");
+    const operatorBar = document.getElementById("operatorBar");
+    const operatorProgress = document.getElementById("operatorProgress");
+
+    const statusMap = {
+      idle: "Pronto",
+      working: "Esecuzione",
+      waiting: "In attesa",
+      sync: "Sincronizzato",
+      review: "Verifica",
     };
 
-    const buttons = document.querySelectorAll(".mode-buttons button");
-    const description = document.getElementById("mode-description");
-
-    buttons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        buttons.forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        const mode = btn.getAttribute("data-mode");
-        description.textContent = descriptions[mode];
+    function renderAgents(agents) {
+      agentGrid.innerHTML = "";
+      agents.forEach((agent) => {
+        const status = statusMap[agent.status] || agent.status || "Unknown";
+        const progress = Math.round((agent.progress || 0) * 100);
+        const card = document.createElement("div");
+        card.className = "panel agent-card";
+        card.innerHTML = `
+          <div class="agent-head">
+            <h3>${agent.name}</h3>
+            <span class="pill">${status}</span>
+          </div>
+          <p class="lead">Ultimo evento: ${agent.last_event}</p>
+          <div class="progress">
+            <div class="progress-bar" style="width:${Math.max(25, progress)}%"></div>
+          </div>
+          <p class="subtle">${progress}% completato</p>
+        `;
+        agentGrid.appendChild(card);
       });
-    });
+    }
+
+    function renderQueue(queue) {
+      queueSummary.textContent = `${queue.pending_count} task · prossima: ${queue.next_task}`;
+      queueBadge.textContent = queue.pending_count ? `${queue.pending_count} in coda` : "Nessun task";
+      queueBadge.classList.toggle("badge-empty", queue.pending_count === 0);
+      queueList.innerHTML = "";
+      (queue.tasks || []).slice(0, 5).forEach((task) => {
+        const item = document.createElement("li");
+        item.innerHTML = `
+          <strong>${task.description}</strong>
+          <span class="pill small">${task.priority}</span>
+        `;
+        queueList.appendChild(item);
+      });
+      if (!queue.tasks || queue.tasks.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "empty";
+        empty.textContent = "Nessun task attivo";
+        queueList.appendChild(empty);
+      }
+    }
+
+    function renderLogs(logs) {
+      logFeed.innerHTML = "";
+      logs.slice(0, 5).forEach((message) => {
+        const entry = document.createElement("p");
+        entry.textContent = `${new Date().toLocaleTimeString()} • ${message}`;
+        logFeed.appendChild(entry);
+      });
+    }
+
+    function renderMetrics(metric, history) {
+      const value = Math.round((metric?.value ?? 0) * 100);
+      metricValue.textContent = `${metric?.label || "Efficienza media"}: ${value}%`;
+      metricBar.style.width = `${value}%`;
+      metricsHistory.innerHTML = "";
+      (history || []).forEach((point) => {
+        const row = document.createElement("div");
+        row.className = "metrics-row";
+        const label = document.createElement("span");
+        label.textContent = new Date(point.timestamp).toLocaleTimeString();
+        const bar = document.createElement("div");
+        bar.className = "metrics-bar";
+        bar.style.width = `${Math.round(point.value * 100)}%`;
+        row.append(label, bar);
+        metricsHistory.appendChild(row);
+      });
+    }
+
+    function renderOperator(operator) {
+      operatorName.textContent = operator.name;
+      const statusLabel = statusMap[operator.status] || operator.status || "Pronto";
+      operatorStatus.textContent = statusLabel;
+      operatorEvent.textContent = operator.last_event;
+      const percent = Math.max(5, Math.round((operator.progress || 0) * 100));
+      operatorBar.style.width = `${percent}%`;
+      operatorProgress.textContent = `${percent}% completato`;
+      operatorStatus.classList.toggle("pill-busy", operator.status !== "ready" && operator.status !== "idle");
+    }
+
+    function renderActivity(feed) {
+      activityFeed.innerHTML = "";
+      if (!feed || !feed.length) {
+        const empty = document.createElement("li");
+        empty.className = "empty";
+        empty.textContent = "Nessuna attività recente.";
+        activityFeed.appendChild(empty);
+        return;
+      }
+      feed.slice(0, 6).forEach((item) => {
+        const row = document.createElement("li");
+        row.innerHTML = `
+          <span class="activity-time">${new Date(item.timestamp).toLocaleTimeString()}</span>
+          <strong>${item.message}</strong>
+        `;
+        activityFeed.appendChild(row);
+      });
+    }
+
+    async function refreshState() {
+      try {
+        const response = await fetch(statePath + "?ts=" + Date.now());
+        if (!response.ok) throw new Error("Impossibile caricare lo stato.");
+        const state = await response.json();
+        timestamp.textContent = new Date(state.timestamp).toLocaleTimeString();
+        renderAgents(state.agents);
+        renderQueue(state.queue);
+        renderLogs(state.logs);
+        renderMetrics(state.metric, state.metrics_history);
+        renderOperator(state.operator);
+        renderActivity(state.activity);
+      } catch (error) {
+        console.error(error);
+        queueSummary.textContent = "Errore nel recupero dello stato.";
+      }
+    }
+
+    refreshButton.addEventListener("click", () => refreshState());
+    refreshState();
+    setInterval(refreshState, 10000);
   </script>
 </body>
 </html>
