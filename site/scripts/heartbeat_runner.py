@@ -1,19 +1,14 @@
 #!/usr/bin/env python3
 import argparse
-import subprocess
 import sys
 import time
-from datetime import datetime
+from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-def run_heartbeat():
-    result = subprocess.run([sys.executable, "site/scripts/task_bus.py", "heartbeat"], capture_output=True, text=True, check=False)
-    timestamp = datetime.utcnow().isoformat()
-    print(f"[{timestamp}] heartbeat → return code {result.returncode}")
-    if result.stdout:
-        print(result.stdout)
-    if result.stderr:
-        print("ERROR>", result.stderr.strip())
+from state_manager import StateManager
 
 
 def main():
@@ -22,10 +17,15 @@ def main():
     parser.add_argument("--duration", type=int, default=900, help="Durata totale della simulazione in secondi")
     args = parser.parse_args()
 
+    manager = StateManager()
     end = time.time() + args.duration
-    while time.time() < end:
-        run_heartbeat()
-        time.sleep(args.interval)
+    try:
+        while time.time() < end:
+            print("Heartbeat eseguito")
+            manager.heartbeat()
+            time.sleep(args.interval)
+    finally:
+        manager.close()
 
 
 if __name__ == "__main__":

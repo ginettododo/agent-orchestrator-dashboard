@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 import argparse
 import random
-import subprocess
 import sys
 import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from state_manager import StateManager
 
 MESSAGES = [
     "Analizza i log di sistema e genera un report compatto",
@@ -14,14 +20,6 @@ MESSAGES = [
 ]
 
 
-def run_command(args):
-    try:
-        subprocess.run(args, check=True)
-    except subprocess.CalledProcessError as exc:
-        print(f"Errore: {exc}")
-        sys.exit(exc.returncode)
-
-
 def main():
     parser = argparse.ArgumentParser(description="Simula task automatici per la dashboard degli agenti")
     parser.add_argument("--iterations", type=int, default=5, help="Quanti task generare")
@@ -29,20 +27,15 @@ def main():
     parser.add_argument("--priority", choices=["bassa", "media", "alta"], default="media")
     args = parser.parse_args()
 
-    for idx in range(args.iterations):
-        task = random.choice(MESSAGES)
-        print(f"[{idx+1}/{args.iterations}] Spawn task: {task} (priorità {args.priority})")
-        run_command([
-            sys.executable,
-            "site/scripts/task_bus.py",
-            "spawn",
-            "--task",
-            task,
-            "--priority",
-            args.priority,
-        ])
-        if idx < args.iterations - 1:
+    manager = StateManager()
+    try:
+        for idx in range(args.iterations):
+            task = random.choice(MESSAGES)
+            print(f"[{idx+1}/{args.iterations}] spawn task: {task} (priorità {args.priority})")
+            manager.spawn_task(task, args.priority)
             time.sleep(args.interval)
+    finally:
+        manager.close()
 
     print("Simulazione completata.")
 

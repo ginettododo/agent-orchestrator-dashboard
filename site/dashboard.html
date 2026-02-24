@@ -7,45 +7,66 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main>
+  <main class="page">
     <header class="hero">
-      <p class="eyebrow">Sistema attivo · aggiornamento <span id="timestamp">--:--:--</span></p>
-      <h1>Dashboard H24 degli agenti</h1>
-      <p class="lead">
-        Ogni blocco rappresenta un agente specializzato nel flusso. Lo status si aggiorna in tempo reale
-        e puoi attivare nuovi task con il comando rapido in basso.
-      </p>
+      <div>
+        <p class="eyebrow">Control room • Aggiornamento <span id="timestamp">--:--:--</span></p>
+        <h1>Catena di agenti attiva h24</h1>
+        <p class="lead">
+          Monitoro pipeline, task, log e metriche in tempo reale. Questa pagina legge il 
+          JSON condiviso e mostra lo stato attuale, inclusi backlog, log e trend storici.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button id="refresh" class="button ghost">Aggiorna ora</button>
+        <span id="queueBadge" class="badge">Nessun task</span>
+      </div>
     </header>
 
-    <section class="workflow" id="agentGrid"></section>
+    <section class="control-panel">
+      <article class="panel queue-panel">
+        <div class="panel-header">
+          <h2>Task queue</h2>
+          <small id="queueSummary">Caricamento...</small>
+        </div>
+        <ul id="queueList"></ul>
+      </article>
 
-    <section class="tools controls">
-      <div class="tool-card">
-        <h3>Task queue</h3>
-        <p id="queueSummary">Caricamento...</p>
-        <button class="button" id="spawnTask">Avvia task fittizio</button>
-      </div>
-      <div class="tool-card">
-        <h3>Log recenti</h3>
-        <div class="log" id="logFeed"></div>
-      </div>
-      <div class="tool-card">
-        <h3>Metrica generale</h3>
-        <p id="metricValue">...</p>
+      <article class="panel metrics-panel">
+        <div class="panel-header">
+          <h2>Metriche live</h2>
+          <small id="metricValue">...</small>
+        </div>
         <div class="progress">
           <div class="progress-bar" id="metricBar"></div>
         </div>
+        <div class="metrics-history" id="metricsHistory"></div>
+      </article>
+    </section>
+
+    <section class="workflow" id="agentGrid"></section>
+
+    <section class="panel logs-panel">
+      <div class="panel-header">
+        <h2>Log recenti</h2>
+        <small>Ultimi eventi</small>
       </div>
+      <div class="log" id="logFeed"></div>
     </section>
   </main>
 
   <script>
+    const statePath = "./data/agent_state.json";
     const agentGrid = document.getElementById("agentGrid");
     const logFeed = document.getElementById("logFeed");
     const metricValue = document.getElementById("metricValue");
     const metricBar = document.getElementById("metricBar");
     const queueSummary = document.getElementById("queueSummary");
+    const queueList = document.getElementById("queueList");
+    const queueBadge = document.getElementById("queueBadge");
+    const metricsHistory = document.getElementById("metricsHistory");
     const timestamp = document.getElementById("timestamp");
+    const refreshButton = document.getElementById("refresh");
 
     const statusMap = {
       idle: "Pronto",
@@ -55,27 +76,50 @@
       review: "Verifica",
     };
 
-    function renderAgents(agentData) {
+    function renderAgents(agents) {
       agentGrid.innerHTML = "";
-      (agentData || []).forEach((agent) => {
+      agents.forEach((agent) => {
         const status = statusMap[agent.status] || agent.status || "Unknown";
         const progress = Math.round((agent.progress || 0) * 100);
         const card = document.createElement("div");
         card.className = "panel agent-card";
         card.innerHTML = `
-          <h2>${agent.name}</h2>
-          <p>Status: <strong>${status}</strong></p>
-          <p>Ultimo evento: ${agent.last_event || "nessuno"}</p>
-          <div class="progress" aria-label="progress">
-            <div class="progress-bar" style="width:${Math.max(20, progress)}%"></div>
+          <div class="agent-head">
+            <h3>${agent.name}</h3>
+            <span class="pill">${status}</span>
           </div>
-          <p class="lead" style="margin-top:0.5rem;">${progress}% completato</p>
+          <p class="lead">Ultimo evento: ${agent.last_event}</p>
+          <div class="progress">
+            <div class="progress-bar" style="width:${Math.max(25, progress)}%"></div>
+          </div>
+          <p class="subtle">${progress}% completato</p>
         `;
         agentGrid.appendChild(card);
       });
     }
 
-    function renderLogs(logs = []) {
+    function renderQueue(queue) {
+      queueSummary.textContent = `${queue.pending_count} task · prossima: ${queue.next_task}`;
+      queueBadge.textContent = queue.pending_count ? `${queue.pending_count} in coda` : "Nessun task";
+      queueBadge.classList.toggle("badge-empty", queue.pending_count === 0);
+      queueList.innerHTML = "";
+      (queue.tasks || []).slice(0, 5).forEach((task) => {
+        const item = document.createElement("li");
+        item.innerHTML = `
+          <strong>${task.description}</strong>
+          <span class="pill small">${task.priority}</span>
+        `;
+        queueList.appendChild(item);
+      });
+      if (!queue.tasks || queue.tasks.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "empty";
+        empty.textContent = "Nessun task attivo";
+        queueList.appendChild(empty);
+      }
+    }
+
+    function renderLogs(logs) {
       logFeed.innerHTML = "";
       logs.slice(0, 5).forEach((message) => {
         const entry = document.createElement("p");
@@ -84,40 +128,41 @@
       });
     }
 
-    function updateMetric(metric) {
+    function renderMetrics(metric, history) {
       const value = Math.round((metric?.value ?? 0) * 100);
-      const label = metric?.label || "Efficienza media";
-      metricValue.textContent = `${label}: ${value}%`;
+      metricValue.textContent = `${metric?.label || "Efficienza media"}: ${value}%`;
       metricBar.style.width = `${value}%`;
+      metricsHistory.innerHTML = "";
+      (history || []).forEach((point) => {
+        const row = document.createElement("div");
+        row.className = "metrics-row";
+        const label = document.createElement("span");
+        label.textContent = new Date(point.timestamp).toLocaleTimeString();
+        const bar = document.createElement("div");
+        bar.className = "metrics-bar";
+        bar.style.width = `${Math.round(point.value * 100)}%`;
+        row.append(label, bar);
+        metricsHistory.appendChild(row);
+      });
     }
 
     async function refreshState() {
       try {
-        const response = await fetch("./data/agent_state.json?ts=" + Date.now());
+        const response = await fetch(statePath + "?ts=" + Date.now());
         if (!response.ok) throw new Error("Impossibile caricare lo stato.");
         const state = await response.json();
         timestamp.textContent = new Date(state.timestamp).toLocaleTimeString();
-        queueSummary.textContent = `${state.queue.pending} task in coda · priorità ${state.queue.priority} · prossimo: ${state.queue.next_task}`;
         renderAgents(state.agents);
+        renderQueue(state.queue);
         renderLogs(state.logs);
-        updateMetric(state.metric);
+        renderMetrics(state.metric, state.metrics_history);
       } catch (error) {
+        console.error(error);
         queueSummary.textContent = "Errore nel recupero dello stato.";
-        updateLog(error.message);
       }
     }
 
-    function updateLog(message) {
-      const entry = document.createElement("p");
-      entry.textContent = `${new Date().toLocaleTimeString()} • ${message}`;
-      logFeed.prepend(entry);
-      if (logFeed.children.length > 5) logFeed.removeChild(logFeed.lastChild);
-    }
-
-    document.getElementById("spawnTask").addEventListener("click", () => {
-      updateLog("Per creare un task reale: `python3 scripts/task_bus.py spawn --task \"Descrivi l'azione\" --priority alta`");
-    });
-
+    refreshButton.addEventListener("click", () => refreshState());
     refreshState();
     setInterval(refreshState, 10000);
   </script>

@@ -2,6 +2,8 @@
 
 Questa workspace contiene un prototipo di **catena di agenti orchestrati** e una dashboard per monitorarne lo stato. L’idea è quella di far girare agenti specializzati (Monitor, Analyst, Executor, Reviewer, Notifier) che comunicano tramite un task bus condiviso e tengono aggiornato un’interfaccia web.
 
+> Live su Vercel: <https://agent-orchestrator-dashboard.vercel.app>
+
 ## Cosa c’è qui
 
 - `site/dashboard.html` + `site/style.css`: dashboard responsive che carica lo stato da `site/data/agent_state.json`
@@ -9,6 +11,8 @@ Questa workspace contiene un prototipo di **catena di agenti orchestrati** e una
 - `site/scripts/task_bus.py`: script CLI per leggere lo stato, spawnare task (`spawn`), aggiornare il battito (`heartbeat`) e stampare lo stato (`status`)
 - `site/scripts/auto_tasks.py`: simulazione di task automatici h24 per popolare la coda
 - `site/scripts/heartbeat_runner.py`: loop che invoca `task_bus.py heartbeat` a intervalli regolari, utile da collegare a cron o un container di monitoraggio
+- `state_manager.py`: sincronizza SQLite, JSON (`site/data/agent_state.json`, `data/task_bus.json`) e log; usato da CLI, simulazioni e backend.
+- `backend/app.py` + `backend/requirements.txt`: server FastAPI che espone `/state`, `/tasks`, `/heartbeat`, ideale per servire il mini-PC come backend h24.
 - `multi_agent_plan.md`: mappa dettagliata degli agenti, orchestrazione e roadmap
 
 ## Come usare la dashboard
@@ -50,6 +54,27 @@ python3 site/scripts/auto_tasks.py --iterations 10 --interval 20 --priority alta
 ```
 
 Ogni iterazione invoca `task_bus.py spawn` con un messaggio casuale e aggiorna il file di stato. Puoi legare questo script a un cron (es. ogni 5 minuti) per simulare attività continuativa.
+
+## Backend e database permanente sul mini-PC
+
+Il cuore dello stato vive sul tuo mini-PC. I dati degli agenti, dei task, dei log e delle metriche vengono salvati in SQLite (`backend/data/agents.db`) e propagati alla UI tramite `state_manager.py`.
+
+1. Installa le dipendenze:
+   ```bash
+   python3 -m pip install -r backend/requirements.txt
+   ```
+2. Avvia il backend con:
+   ```bash
+   cd /root/.openclaw/workspace
+   ./scripts/start_backend.sh
+   ```
+   Questo espone API REST su `http://localhost:8001/` che la dashboard può usare (e che puoi interrogare da remoto). Usa `/state`, `/tasks`, `/heartbeat` per integrare altre automazioni.
+3. Se vuoi riempire la cronologia metriche fittizie:
+   ```bash
+   python3 scripts/generate_metrics.py --iterations 20 --interval 1
+   ```
+
+Questo backend rimane in esecuzione come servizio e aggiorna `site/data/agent_state.json` + `data/task_bus.json` dopo ogni operazione.
 
 ## Prossimi step suggeriti
 

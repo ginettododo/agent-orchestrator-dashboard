@@ -1,26 +1,83 @@
 {
-  "timestamp": "2026-02-24T04:20:00Z",
+  "timestamp": "2026-02-24T11:54:36.020860+00:00",
   "agents": [
-    {"name": "Monitor Agent", "status": "idle", "progress": 0.25, "last_event": "2 min fa"},
-    {"name": "Analyst Agent", "status": "working", "progress": 0.62, "last_event": "1 min fa"},
-    {"name": "Executor Agent", "status": "waiting", "progress": 0.18, "last_event": "5 min fa"},
-    {"name": "Reviewer Agent", "status": "idle", "progress": 0.45, "last_event": "9 min fa"},
-    {"name": "Notifier Agent", "status": "sync", "progress": 0.83, "last_event": "0 min fa"}
+    {
+      "name": "Monitor Agent",
+      "status": "working",
+      "progress": 0.5,
+      "last_event": "nuovo task rilevato"
+    },
+    {
+      "name": "Analyst Agent",
+      "status": "working",
+      "progress": 0.5,
+      "last_event": "nuovo task rilevato"
+    },
+    {
+      "name": "Executor Agent",
+      "status": "idle",
+      "progress": 0.0,
+      "last_event": "inizializzazione"
+    },
+    {
+      "name": "Reviewer Agent",
+      "status": "idle",
+      "progress": 0.0,
+      "last_event": "inizializzazione"
+    },
+    {
+      "name": "Notifier Agent",
+      "status": "idle",
+      "progress": 0.0,
+      "last_event": "inizializzazione"
+    }
   ],
   "queue": {
-    "pending": 2,
-    "priority": "media",
-    "next_task": "Analyst Agent sta definendo i requisiti"
+    "tasks": [
+      {
+        "id": 1,
+        "description": "Test offline",
+        "priority": "alta",
+        "status": "pending",
+        "created_at": "2026-02-24T11:53:49.252243+00:00",
+        "processed_at": null
+      }
+    ],
+    "pending_count": 1,
+    "next_task": "Test offline"
   },
   "logs": [
-    "Notifier Agent ha registrato un alert di completamento.",
-    "Executor Agent ha generato nuovi asset grafici.",
-    "Analyst Agent ha chiesto chiarimenti preliminari a Monitor Agent.",
-    "Monitor Agent ha ascoltato un webhook esterno.",
-    "Cron heartbeat toccato a 04:15 UTC."
+    "Nuovo task 'Test offline' (priorit\u00e0 alta)."
   ],
   "metric": {
     "label": "Efficienza media",
-    "value": 0.68
-  }
+    "value": 0.2
+  },
+  "metrics_history": [
+    {
+      "label": "Efficienza media",
+      "value": 0.0,
+      "timestamp": "2026-02-24T11:53:12.318935+00:00"
+    },
+    {
+      "label": "Efficienza media",
+      "value": 0.38917021300609217,
+      "timestamp": "2026-02-24T11:53:44.891421+00:00"
+    },
+    {
+      "label": "Efficienza media",
+      "value": 0.8119973457033114,
+      "timestamp": "2026-02-24T11:53:44.928762+00:00"
+    },
+    {
+      "label": "Efficienza media",
+      "value": 0.8152354435995475,
+      "timestamp": "2026-02-24T11:53:44.960775+00:00"
+    },
+    {
+      "label": "Efficienza media",
+      "value": 0.2,
+      "timestamp": "2026-02-24T11:53:49.280300+00:00"
+    }
+  ]
 }
